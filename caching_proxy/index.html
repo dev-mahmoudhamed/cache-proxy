@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proxy Lab</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --glass-bg: rgba(255, 255, 255, 0.04);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #818cf8;
+            --primary-glow: rgba(129, 140, 248, 0.3);
+            --text-bright: #f8fafc;
+            --text-dim: #94a3b8;
+            --success: #4ade80;
+            --error: #fb7185;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-bright);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+        }
+
+        .main-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Rebranded Header */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 0;
+            background: linear-gradient(to bottom right, #fff 30%, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+            max-width: 400px;
+            margin: 0 auto;
+            line-height: 1.5;
+        }
+
+        /* Proxy Input Area */
+        .input-group {
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
+            margin-bottom: 50px;
+        }
+
+        .input-group:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 25px var(--primary-glow);
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 15px;
+            font-size: 16px;
+            flex-grow: 1;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            color: #0f172a;
+            border: none;
+            border-radius: 10px;
+            padding: 0 25px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #a5b4fc;
+            transform: translateY(-1px);
+        }
+
+        /* DATA SECTION */
+        .data-section {
+            border-top: 1px solid var(--glass-border);
+            padding-top: 30px;
+        }
+
+        .list-header {
+            display: grid;
+            grid-template-columns: 1fr 120px 120px;
+            gap: 20px;
+            padding: 0 25px 20px 25px;
+            /* Vertical gap to results */
+            margin-bottom: 10px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-dim);
+            font-weight: 800;
+            opacity: 0.8;
+        }
+
+        .result-row {
+            display: grid;
+            grid-template-columns: 1fr 120px 120px;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 25px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .result-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(129, 140, 248, 0.3);
+            transform: translateX(5px);
+        }
+
+        .col-center {
+            text-align: center;
+        }
+
+        .col-right {
+            text-align: right;
+        }
+
+        .url-path {
+            font-weight: 500;
+            color: var(--text-bright);
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            font-size: 0.9rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Badge Styling */
+        .badge {
+            font-size: 10px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-hit {
+            background: rgba(74, 222, 128, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .badge-miss {
+            background: rgba(251, 113, 133, 0.15);
+            color: var(--error);
+            border: 1px solid rgba(251, 113, 133, 0.3);
+        }
+
+        .duration {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-dim);
+            padding: 80px 0;
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-card">
+            <header>
+                <div class="header-top">
+                    <h1>⚡ Proxy Latency Lab</h1>
+                </div>
+                <p class="subtitle">Analyze how caching affects global request speeds.</p>
+            </header>
+
+            <form method="POST" action="/fetch" class="input-group">
+                <input type="text" name="url" placeholder="Paste target URL to test proxy..." required autofocus />
+                <button type="submit">
+                    Fetch 🚀
+                </button>
+            </form>
+
+            <div class="data-section">
+                {{if .}}
+                <div class="list-header">
+                    <span>Source Request</span>
+                    <span class="col-center">Cache State</span>
+                    <span class="col-right">TTFB Latency</span>
+                </div>
+
+                {{range $index, $value := .}}
+                <div class="result-row">
+                    <div class="url-path">{{$value.URL}}</div>
+                    <div class="col-center">
+                        {{if $value.Cached}}
+                        <span class="badge badge-hit">CACHE HIT</span>
+                        {{else}}
+                        <span class="badge badge-miss">CACHE MISS</span>
+                        {{end}}
+                    </div>
+                    <div class="col-right">
+                        <span class="duration">{{$value.Duration}}</span>
+                    </div>
+                </div>
+                {{end}}
+
+                {{else}}
+                <div class="empty-state">
+                    <span class="empty-icon">📊</span>
+                    <div>Run a request to begin analysis.</div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
