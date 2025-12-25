@@ -4,273 +4,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proxy Lab</title>
+    <title>Proxy Cache Lab</title>
     <style>
-        :root {
-            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-            --glass-bg: rgba(255, 255, 255, 0.04);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --primary: #818cf8;
-            --primary-glow: rgba(129, 140, 248, 0.3);
-            --text-bright: #f8fafc;
-            --text-dim: #94a3b8;
-            --success: #4ade80;
-            --error: #fb7185;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: var(--bg-gradient);
-            background-attachment: fixed;
-            color: var(--text-bright);
-            display: flex;
-            justify-content: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            margin: 0;
             padding: 40px 20px;
         }
 
         .container {
-            width: 100%;
-            max-width: 850px;
-        }
-
-        .main-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
             padding: 40px;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        /* Rebranded Header */
         header {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .header-top {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 10px;
+            margin-bottom: 35px;
         }
 
         h1 {
-            font-size: 2.2rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin: 0;
-            background: linear-gradient(to bottom right, #fff 30%, #818cf8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 2rem;
+            color: #2d3748;
+            margin-bottom: 8px;
+            font-weight: 700;
         }
 
         .subtitle {
-            color: var(--text-dim);
+            color: #718096;
             font-size: 1rem;
-            max-width: 400px;
-            margin: 0 auto;
-            line-height: 1.5;
         }
 
-        /* Proxy Input Area */
-        .input-group {
+        /* Form */
+        form {
+            margin-bottom: 45px;
+        }
+
+        .input-wrapper {
             display: flex;
             gap: 12px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px;
-            border-radius: 16px;
-            border: 1px solid var(--glass-border);
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
             transition: all 0.3s ease;
-            margin-bottom: 50px;
         }
 
-        .input-group:focus-within {
-            border-color: var(--primary);
-            box-shadow: 0 0 25px var(--primary-glow);
-        }
-
-        input {
-            background: transparent;
-            border: none;
-            color: white;
-            padding: 12px 15px;
-            font-size: 16px;
-            flex-grow: 1;
+        input[type="text"]:focus {
             outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         button {
-            background: var(--primary);
-            color: #0f172a;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
-            border-radius: 10px;
-            padding: 0 25px;
-            font-weight: 700;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         button:hover {
-            background: #a5b4fc;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
         }
 
-        /* DATA SECTION */
-        .data-section {
-            border-top: 1px solid var(--glass-border);
-            padding-top: 30px;
+        button:active {
+            transform: translateY(0);
         }
 
-        .list-header {
+        /* Results Table */
+        .results-section {
+            margin-top: 20px;
+        }
+
+        .table-header {
             display: grid;
-            grid-template-columns: 1fr 120px 120px;
+            grid-template-columns: 2fr 1fr 1fr;
             gap: 20px;
-            padding: 0 25px 20px 25px;
-            /* Vertical gap to results */
-            margin-bottom: 10px;
-            font-size: 11px;
+            padding: 0 20px 15px 20px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #a0aec0;
             text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--text-dim);
-            font-weight: 800;
-            opacity: 0.8;
-        }
-
-        .result-row {
-            display: grid;
-            grid-template-columns: 1fr 120px 120px;
-            align-items: center;
-            gap: 20px;
-            padding: 20px 25px;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 14px;
-            margin-bottom: 12px;
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .result-row:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(129, 140, 248, 0.3);
-            transform: translateX(5px);
-        }
-
-        .col-center {
-            text-align: center;
-        }
-
-        .col-right {
-            text-align: right;
-        }
-
-        .url-path {
-            font-weight: 500;
-            color: var(--text-bright);
-            font-family: 'JetBrains Mono', 'Courier New', monospace;
-            font-size: 0.9rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Badge Styling */
-        .badge {
-            font-size: 10px;
-            padding: 5px 10px;
-            border-radius: 6px;
-            font-weight: 900;
             letter-spacing: 0.05em;
         }
 
-        .badge-hit {
-            background: rgba(74, 222, 128, 0.15);
-            color: var(--success);
-            border: 1px solid rgba(74, 222, 128, 0.3);
+        .result-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            align-items: center;
+            transition: all 0.3s ease;
         }
 
-        .badge-miss {
-            background: rgba(251, 113, 133, 0.15);
-            color: var(--error);
-            border: 1px solid rgba(251, 113, 133, 0.3);
+        .result-item.hit {
+            background: #f0fdf4;
         }
 
-        .duration {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--primary);
+        .result-item.miss {
+            background: #fef2f2;
+        }
+
+        .result-item:hover {
+            transform: translateX(5px);
+        }
+
+        .result-item.hit:hover {
+            background: #dcfce7;
+        }
+
+        .result-item.miss:hover {
+            background: #fee2e2;
+        }
+
+        .url-column {
+            color: #2d3748;
+            font-size: 0.9rem;
+            word-break: break-all;
+            font-weight: 500;
+        }
+
+        .status-column {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .duration-column {
+            text-align: right;
             font-weight: 700;
+            font-size: 0.95rem;
         }
 
+        /* Status Colors */
+        .status-hit {
+            color: #38a169;
+        }
+
+        .status-miss {
+            color: #e53e3e;
+        }
+
+        .duration-hit {
+            color: #38a169;
+        }
+
+        .duration-miss {
+            color: #e53e3e;
+        }
+
+        /* Empty State */
         .empty-state {
             text-align: center;
-            color: var(--text-dim);
-            padding: 80px 0;
+            padding: 80px 20px;
+            color: #a0aec0;
         }
 
-        .empty-icon {
-            font-size: 2.5rem;
+        .empty-state-icon {
+            font-size: 4rem;
             margin-bottom: 15px;
-            display: block;
-            opacity: 0.3;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 1.05rem;
+        }
+
+        /* Symbols */
+        .symbol {
+            margin-right: 8px;
+            font-size: 1.1em;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                padding: 25px 20px;
+                border-radius: 16px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                padding: 16px;
+            }
+
+            .table-header {
+                display: none;
+            }
+
+            .result-item {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                padding: 18px;
+            }
+
+            .status-column,
+            .duration-column {
+                text-align: left;
+            }
+
+            .url-column {
+                font-size: 0.85rem;
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            .status-column {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .status-column::before {
+                content: 'Status:';
+                color: #a0aec0;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .duration-column {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .duration-column::before {
+                content: 'Duration:';
+                color: #a0aec0;
+                font-size: 0.75rem;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <div class="main-card">
-            <header>
-                <div class="header-top">
-                    <h1>⚡ Proxy Latency Lab</h1>
-                </div>
-                <p class="subtitle">Analyze how caching affects global request speeds.</p>
-            </header>
+        <header>
+            <h1>⚡ Proxy Cache Lab</h1>
+            <p class="subtitle">Test how caching improves response times for repeated requests</p>
+        </header>
 
-            <form method="POST" action="/fetch" class="input-group">
-                <input type="text" name="url" placeholder="Paste target URL to test proxy..." required autofocus />
-                <button type="submit">
-                    Fetch 🚀
-                </button>
-            </form>
-
-            <div class="data-section">
-                {{if .}}
-                <div class="list-header">
-                    <span>Source Request</span>
-                    <span class="col-center">Cache State</span>
-                    <span class="col-right">TTFB Latency</span>
-                </div>
-
-                {{range $index, $value := .}}
-                <div class="result-row">
-                    <div class="url-path">{{$value.URL}}</div>
-                    <div class="col-center">
-                        {{if $value.Cached}}
-                        <span class="badge badge-hit">CACHE HIT</span>
-                        {{else}}
-                        <span class="badge badge-miss">CACHE MISS</span>
-                        {{end}}
-                    </div>
-                    <div class="col-right">
-                        <span class="duration">{{$value.Duration}}</span>
-                    </div>
-                </div>
-                {{end}}
-
-                {{else}}
-                <div class="empty-state">
-                    <span class="empty-icon">📊</span>
-                    <div>Run a request to begin analysis.</div>
-                </div>
-                {{end}}
+        <form method="POST" action="/fetch">
+            <div class="input-wrapper">
+                <input type="text" name="url" placeholder="Enter URL to test (e.g., https://example.com)" required
+                    autofocus />
+                <button type="submit">Fetch URL</button>
             </div>
+        </form>
+
+        <div class="results-section">
+            {{if .}}
+            <div class="table-header">
+                <div>URL</div>
+                <div style="text-align: center;">Status</div>
+                <div style="text-align: right;">Duration</div>
+            </div>
+
+            {{range .}}
+            <div class="result-item {{if .Cached}}hit{{else}}miss{{end}}">
+                <div class="url-column">{{.URL}}</div>
+                <div class="status-column {{if .Cached}}status-hit{{else}}status-miss{{end}}">
+                    {{if .Cached}}
+                    <span class="symbol">✓</span>HIT
+                    {{else}}
+                    <span class="symbol">✗</span>MISS
+                    {{end}}
+                </div>
+                <div class="duration-column {{if .Cached}}duration-hit{{else}}duration-miss{{end}}">
+                    {{.Duration}}
+                </div>
+            </div>
+            {{end}}
+
+            {{else}}
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p>No requests yet. Enter a URL above to start testing.</p>
+            </div>
+            {{end}}
         </div>
     </div>
 </body>

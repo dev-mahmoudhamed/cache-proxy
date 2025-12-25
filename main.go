@@ -17,10 +17,8 @@ type ResponseData struct {
 }
 
 var (
-	tmpl       = template.Must(template.ParseFiles("index.html"))
-	cacheStore = make(map[string]string)
-	//history    = make([]ResponseData, 0)
-	mu sync.Mutex
+	tmpl = template.Must(template.ParseFiles("index.html"))
+	mu   sync.Mutex
 )
 
 func homehandler(w http.ResponseWriter, r *http.Request) {
@@ -29,14 +27,24 @@ func homehandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	session, sessionID := getSession(r)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   300,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
 	// prevent browser caching
 	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 	w.Header().Set("Pragma", "no-cache")
-	w.Header().Set("Expires", "0")
 
 	// clear server cache safely
 	mu.Lock()
-	clear(cacheStore)
+	clear(session.Cache)
+	session.History = make([]ResponseData, 0)
 	mu.Unlock()
 
 	err := tmpl.Execute(w, nil)
@@ -50,6 +58,17 @@ func fetchHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
+
+	session, sessionID := getSession(r)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   300,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+	})
+
 	url := appendPrefix(r.FormValue("url"))
 	var res ResponseData
 
@@ -57,7 +76,7 @@ func fetchHandler(w http.ResponseWriter, r *http.Request) {
 	res.URL = url
 
 	mu.Lock()
-	html, found := cacheStore[url]
+	html, found := session.Cache[url]
 	mu.Unlock()
 
 	if found {
@@ -70,15 +89,18 @@ func fetchHandler(w http.ResponseWriter, r *http.Request) {
 			log.Printf("failed to download page to db: %v", err)
 		}
 		mu.Lock()
-		cacheStore[url] = res.HTML
+		session.Cache[url] = res.HTML
 		mu.Unlock()
 	}
 
 	res.Duration = prettyDuration(time.Since(start))
-	//history = append(history, res)
-	// tmpl.Execute(w, history)
+	mu.Lock()
+	session.History = append(session.History, res)
+	historyToRender := make([]ResponseData, len(session.History))
+	copy(historyToRender, session.History)
+	mu.Unlock()
 
-	err := tmpl.Execute(w, []ResponseData{res})
+	err := tmpl.Execute(w, historyToRender)
 	if err != nil {
 		http.Error(w, "Template error", http.StatusInternalServerError)
 	}
