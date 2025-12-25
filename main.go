@@ -86,14 +86,17 @@ func fetchHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 		res.HTML, err = DownloadHTML(url)
 		if err != nil {
-			log.Printf("failed to download page to db: %v", err)
+			// Don't add failed requests to history
+			log.Printf("failed to download page: %v", err)
+			http.Error(w, fmt.Sprintf("Failed to fetch URL: %v", err), http.StatusBadGateway)
+			return
 		}
 		mu.Lock()
 		session.Cache[url] = res.HTML
 		mu.Unlock()
 	}
-
 	res.Duration = prettyDuration(time.Since(start))
+
 	mu.Lock()
 	session.History = append(session.History, res)
 	historyToRender := make([]ResponseData, len(session.History))
