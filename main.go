@@ -19,8 +19,8 @@ type ResponseData struct {
 var (
 	tmpl       = template.Must(template.ParseFiles("index.html"))
 	cacheStore = make(map[string]string)
-	history    = make([]ResponseData, 0)
-	mu         sync.Mutex
+	//history    = make([]ResponseData, 0)
+	mu sync.Mutex
 )
 
 func homehandler(w http.ResponseWriter, r *http.Request) {
@@ -29,11 +29,15 @@ func homehandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// prevent browser caching
 	w.Header().Set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
 	w.Header().Set("Pragma", "no-cache")
 	w.Header().Set("Expires", "0")
 
+	// clear server cache safely
+	mu.Lock()
 	clear(cacheStore)
+	mu.Unlock()
 
 	err := tmpl.Execute(w, nil)
 	if err != nil {
@@ -41,41 +45,48 @@ func homehandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func URLHandler(w http.ResponseWriter, r *http.Request) {
+func fetchHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
-	var err error
+	url := appendPrefix(r.FormValue("url"))
 	var res ResponseData
-	url := r.FormValue("url")
-	url = appendPrefix(url)
 
 	start := time.Now()
-	_, ok := cacheStore[url]
 	res.URL = url
-	if ok {
+
+	mu.Lock()
+	html, found := cacheStore[url]
+	mu.Unlock()
+
+	if found {
 		res.Cached = true
+		res.HTML = html
 	} else {
+		var err error
 		res.HTML, err = DownloadHTML(url)
 		if err != nil {
 			log.Printf("failed to download page to db: %v", err)
-		} else {
-			mu.Lock()
-			cacheStore[url] = res.HTML
-			mu.Unlock()
 		}
+		mu.Lock()
+		cacheStore[url] = res.HTML
+		mu.Unlock()
 	}
 
 	res.Duration = prettyDuration(time.Since(start))
-	history = append(history, res)
-	tmpl.Execute(w, history)
+	//history = append(history, res)
+	// tmpl.Execute(w, history)
+
+	err := tmpl.Execute(w, []ResponseData{res})
+	if err != nil {
+		http.Error(w, "Template error", http.StatusInternalServerError)
+	}
 }
 
 func main() {
 	http.HandleFunc("/", homehandler)
-	http.HandleFunc("/fetch", URLHandler)
+	http.HandleFunc("/fetch", fetchHandler)
 
 	fmt.Println("Server started at http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
