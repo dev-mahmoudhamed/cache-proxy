@@ -82,3 +82,5 @@ http://localhost:8080
 ## License
 
 MIT License - Free to use and modify
+
+This project draws inspiration from the caching server project detailed at [roadmap.sh](https://roadmap.sh/projects/caching-server).

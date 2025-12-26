@@ -34,7 +34,7 @@ func appendPrefix(url string) string {
 	return url
 }
 
-func prettyDuration(d time.Duration) string {
+func formatDuration(d time.Duration) string {
 	if d < time.Microsecond {
 		return fmt.Sprintf("%d ns", d.Nanoseconds())
 	} else if d < time.Millisecond {
