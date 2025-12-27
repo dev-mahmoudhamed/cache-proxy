@@ -31,6 +31,7 @@ func appendPrefix(url string) string {
 	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		url = "https://" + url
 	}
+	url = strings.TrimRight(url, "/")
 	return url
 }
 
